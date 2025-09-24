@@ -128,6 +128,8 @@ static inline void     spi_putreg(struct kinetis_spidev_s *priv,
                                   uint8_t offset, uint32_t value);
 static inline uint16_t spi_getreg16(struct kinetis_spidev_s *priv,
                                     uint8_t offset);
+static inline void     spi_putreg32(struct kinetis_spidev_s *priv,
+                                    uint8_t offset, uint32_t value);
 static inline void     spi_putreg16(struct kinetis_spidev_s *priv,
                                     uint8_t offset, uint16_t value);
 static inline void     spi_putreg8(struct kinetis_spidev_s *priv,
@@ -439,6 +441,13 @@ static inline uint16_t spi_getreg16(struct kinetis_spidev_s *priv,
                                     uint8_t offset)
 {
   return getreg16(priv->spibase + offset);
+}
+
+static inline void spi_putreg32(struct kinetis_spidev_s *priv,
+                                uint8_t offset,
+                                uint32_t value)
+{
+  putreg32(value, priv->spibase + offset);
 }
 
 /****************************************************************************
@@ -970,8 +979,14 @@ static uint16_t spi_send_data(struct kinetis_spidev_s *priv, uint16_t wd,
   if (0 == (spi_getreg(priv, KINETIS_SPI_SR_OFFSET) & SPI_SR_TXRXS))
     {
       spi_run(priv, true);
-      spi_write_control(priv, SPI_PUSHR_CTAS_CTAR0 | SPI_PUSHR_CTCNT);
+      //spi_write_control(priv, SPI_PUSHR_CTAS_CTAR0 | SPI_PUSHR_CTCNT);
     }
+
+  //spierr("yay\n");
+  //spi_wait_status(priv, SPI_SR_TFFF);
+
+  /* Write the data to transmitted to the SPI Data Register */
+  //spi_putreg32(priv, KINETIS_SPI_PUSHR_OFFSET, SPI_PUSHR_TXDATA(wd) | SPI_PUSHR_CTAS_CTAR0 | SPI_PUSHR_CTCNT);
 
   spi_writeword(priv, wd);
   ret = spi_readword(priv);
@@ -1075,7 +1090,6 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
             }
 
           /* Exchange one word */
-
           word = spi_send_data(priv, word, nwords ? false : true);
 
           /* Is there a buffer to receive the return value? */

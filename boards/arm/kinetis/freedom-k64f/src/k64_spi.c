@@ -38,6 +38,7 @@
 #include "chip.h"
 #include "kinetis.h"
 #include "freedom-k64f.h"
+#include "hardware/kinetis_pinmux.h"
 
 #if defined(CONFIG_KINETIS_SPI0) || defined(CONFIG_KINETIS_SPI1) || \
             defined(CONFIG_KINETIS_SPI2)
@@ -57,7 +58,8 @@
 
 void weak_function k64_spidev_initialize(void)
 {
-# warning "Missing logic"
+  spierr("configured!\n");
+  kinetis_pinconfig(PIN_SPI0_CS);
 }
 
 /****************************************************************************
@@ -98,7 +100,9 @@ void kinetis_spi0select(struct spi_dev_s *dev, uint32_t devid,
 {
   spiinfo("devid: %d CS: %s\n", (int)devid,
           selected ? "assert" : "de-assert");
-# warning "Missing logic"
+
+          kinetis_pinconfig(PIN_SPI0_CS); // k64_spidev_initialize is not called ?
+  kinetis_gpiowrite(PIN_SPI0_CS, !selected);
 }
 
 uint8_t kinetis_spi0status(struct spi_dev_s *dev, uint32_t devid)

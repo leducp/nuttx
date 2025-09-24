@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <debug.h>
 
+#include <nuttx/spi/spi_transfer.h>
 #include <nuttx/fs/fs.h>
 
 #ifdef HAVE_RTC_DRIVER
@@ -38,6 +39,7 @@
 #  include "kinetis_alarm.h"
 #endif
 
+#include "kinetis_spi.h"
 #include "freedom-k64f.h"
 
 #if defined(CONFIG_BOARDCTL) || defined(CONFIG_BOARD_LATE_INITIALIZE)
@@ -150,6 +152,18 @@ int k64_bringup(void)
         }
     }
 #endif
+
+  struct spi_dev_s *spi0;
+  /* Verify we can initialize SPI bus  */
+
+  spi0 = kinetis_spibus_initialize(0);
+
+  if (!spi0)
+    {
+      syslog(LOG_ERR, "ERROR:FAILED to initialize SPI port 0\n");
+      return -ENODEV;
+    }
+    spi_register(spi0, 0);
 
   UNUSED(ret);
   return OK;
